@@ -1,0 +1,8 @@
+<launch>
+	<node name="imageloop" pkg="vision" type="imageloop.py" output="screen">
+	    <param name="image_dir" value="/home/ryan/ws/ros_snowplow/src/vision/images"/>
+	    <param name="image_time" value="2"/>
+        <param name="camera_info_url" value="file://$(find vision)/HDLifecamCal.yaml" />
+
+	</node>
+</launch>
