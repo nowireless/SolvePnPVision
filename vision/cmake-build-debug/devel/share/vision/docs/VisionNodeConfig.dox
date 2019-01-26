@@ -1,0 +1,12 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~low_h_param" : \b [int] An Integer parameter min: 0, default: 0, max: 180
+- \b "~low_s_param" : \b [int] An Integer parameter min: 0, default: 0, max: 255
+- \b "~low_v_param" : \b [int] An Integer parameter min: 0, default: 0, max: 255
+- \b "~high_h_param" : \b [int] An Integer parameter min: 0, default: 180, max: 180
+- \b "~high_s_param" : \b [int] An Integer parameter min: 0, default: 255, max: 255
+- \b "~high_v_param" : \b [int] An Integer parameter min: 0, default: 255, max: 255
+- \b "~epsilon_param" : \b [int] An Integer parameter min: 0, default: 5, max: 20
+

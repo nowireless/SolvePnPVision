@@ -1,0 +1,13 @@
+\subsubsection usage Usage
+\verbatim
+<node name="vision_node" pkg="vision" type="vision_node">
+  <param name="low_h_param" type="int" value="0" />
+  <param name="low_s_param" type="int" value="0" />
+  <param name="low_v_param" type="int" value="0" />
+  <param name="high_h_param" type="int" value="180" />
+  <param name="high_s_param" type="int" value="255" />
+  <param name="high_v_param" type="int" value="255" />
+  <param name="epsilon_param" type="int" value="5" />
+</node>
+\endverbatim
+

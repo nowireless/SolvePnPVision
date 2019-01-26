@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/ryan/ws/3081/src/SolvePnPVision/vision/cmake-build-debug/devel/setup.sh

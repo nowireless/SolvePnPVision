@@ -1,0 +1,20 @@
+/home/ryan/opt/clion-2018.1.6/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/ryan/ws/3081/src/SolvePnPVision/vision
+-- Using CATKIN_DEVEL_PREFIX: /home/ryan/ws/3081/src/SolvePnPVision/vision/cmake-build-debug/devel
+-- Using CMAKE_PREFIX_PATH: /home/ryan/ws/3081/devel;/home/ryan/ws/csci5143/ros/devel;/opt/ros/melodic
+-- This workspace overlays: /home/ryan/ws/3081/devel;/home/ryan/ws/csci5143/ros/devel;/opt/ros/melodic
+-- Found PythonInterp: /usr/bin/python2 (found suitable version "2.7.15", minimum required is "2") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python2
+-- Using Debian Python package layout
+-- Using empy: /usr/bin/empy
+-- Using CATKIN_ENABLE_TESTING: ON
+-- Call enable_testing()
+-- Using CATKIN_TEST_RESULTS_DIR: /home/ryan/ws/3081/src/SolvePnPVision/vision/cmake-build-debug/test_results
+-- Found gmock sources under '/usr/src/googletest': gmock will be built
+-- Found PythonInterp: /usr/bin/python2 (found version "2.7.15") 
+-- Found gtest sources under '/usr/src/googletest': gtests will be built
+-- Using Python nosetests: /usr/bin/nosetests-2.7
+-- catkin 0.7.14
+-- Using these message generators: gencpp;geneus;genlisp;gennodejs;genpy
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/ryan/ws/3081/src/SolvePnPVision/vision/cmake-build-debug

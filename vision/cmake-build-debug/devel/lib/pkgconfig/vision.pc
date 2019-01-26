@@ -1,0 +1,8 @@
+prefix=/home/ryan/ws/3081/src/SolvePnPVision/vision/cmake-build-debug/devel
+
+Name: vision
+Description: Description of vision
+Version: 0.0.0
+Cflags: -I/home/ryan/ws/3081/src/SolvePnPVision/vision/cmake-build-debug/devel/include
+Libs: -L/home/ryan/ws/3081/src/SolvePnPVision/vision/cmake-build-debug/devel/lib 
+Requires: 

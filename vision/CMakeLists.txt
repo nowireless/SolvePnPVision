@@ -24,10 +24,13 @@ find_package(catkin REQUIRED COMPONENTS
   camera_info_manager_py
   tf
   nav_msgs
+  dynamic_reconfigure
 )
 
 find_package(OpenCV 3 REQUIRED)
 find_package(YamlCpp REQUIRED)
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -104,10 +107,10 @@ find_package(YamlCpp REQUIRED)
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
+generate_dynamic_reconfigure_options(
+  cfg/Vision.cfg
 #   cfg/DynReconf2.cfg
-# )
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -153,11 +156,13 @@ add_executable(vision_node src/vision_node.cpp src/Process.cpp src/Target.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(vision_node  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(vision_node ${PROJECT_NAME}_gencfg)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(vision_node
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
+   Eigen3::Eigen
 )
 
 add_executable(camera_calibration src/camera_calibration.cpp)
@@ -172,6 +177,16 @@ target_link_libraries(image_point_test
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
 )
+
+#############
+## Test    ##
+#############
+catkin_add_gtest(vision_test test/Test.cpp test/ProcessingTest.cpp)
+target_link_libraries(vision_test
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+)
+
 #############
 ## Install ##
 #############
