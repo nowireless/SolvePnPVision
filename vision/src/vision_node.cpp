@@ -84,8 +84,8 @@ int main(int argc, char **argv) {
 
 
     // Pub/Sub Setup
-    ros::Subscriber sourceFrameSub = n.subscribe("/camera/image_raw", 5, imageCallback);
-    ros::Subscriber cameraInfoSub = n.subscribe("/camera/camera_info", 5, cameraInfoCallback);
+    ros::Subscriber sourceFrameSub = n.subscribe("/camera/color/image_raw", 5, imageCallback);
+    ros::Subscriber cameraInfoSub = n.subscribe("/camera/color/camera_info", 5, cameraInfoCallback);
 
     ros::Publisher processedFramePub = n.advertise<sensor_msgs::Image>("processed_image", 10);
     ros::Publisher destFramePub = n.advertise<sensor_msgs::Image>("dest_image", 10);

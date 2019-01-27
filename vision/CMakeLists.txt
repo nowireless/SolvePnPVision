@@ -29,8 +29,9 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(OpenCV 3 REQUIRED)
 find_package(YamlCpp REQUIRED)
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
+#find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(PkgConfig)
+pkg_search_module(Eigen3 REQUIRED eigen3)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -140,6 +141,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${YAMLCPP_INCLUDE_DIR}
+  ${Eigen3_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -162,7 +164,7 @@ add_dependencies(vision_node ${PROJECT_NAME}_gencfg)
 target_link_libraries(vision_node
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
-   Eigen3::Eigen
+   ${Eigen3_LIBS}
 )
 
 add_executable(camera_calibration src/camera_calibration.cpp)
@@ -181,12 +183,13 @@ target_link_libraries(image_point_test
 #############
 ## Test    ##
 #############
-catkin_add_gtest(vision_test test/Test.cpp test/ProcessingTest.cpp)
-target_link_libraries(vision_test
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
-)
-
+if(CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(vision_test test/Test.cpp test/ProcessingTest.cpp)
+    target_link_libraries(vision_test
+        ${catkin_LIBRARIES}
+        ${OpenCV_LIBS}
+    )
+endif()
 #############
 ## Install ##
 #############

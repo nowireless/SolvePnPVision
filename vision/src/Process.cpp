@@ -14,6 +14,8 @@
 
 #include <vision/Process.h>
 #include <vision/Target.h>
+#include <sstream>
+
 
 using namespace cv;
 using namespace std;
@@ -51,6 +53,10 @@ namespace vision {
             for (int i = 0; i < 4; i++) {
                 line(processed, vertices[i], vertices[(i + 1) % 4], Scalar(255, 0, 0), 2);
             }
+
+            std::stringstream ss;
+            ss << target.compositeScore;
+            cv::putText(processed, ss.str(), target.boundingBox.center, 1.0, FONT_HERSHEY_PLAIN, cv::Scalar(255,255,255));
         }
 
         vector<TargetPair> targetPairs = findTargetPairs(foundTargets, dest);

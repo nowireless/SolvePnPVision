@@ -1,0 +1,5 @@
+<launch>
+    <node name="camera_info" pkg="vision" type="camera_info.py" output="screen">
+        <param name="camera_info_url" value="file://$(find vision)/Realsense.yaml" />
+    </node>
+</launch>
