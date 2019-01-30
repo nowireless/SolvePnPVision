@@ -167,12 +167,12 @@ target_link_libraries(vision_node
    ${Eigen3_LIBS}
 )
 
-add_executable(camera_calibration src/camera_calibration.cpp)
-target_link_libraries(camera_calibration
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
-    ${YAMLCPP_LIBRARY}
-)
+#add_executable(camera_calibration src/camera_calibration.cpp)
+#target_link_libraries(camera_calibration
+#    ${catkin_LIBRARIES}
+#    ${OpenCV_LIBS}
+#    ${YAMLCPP_LIBRARY}
+#)
 
 add_executable(image_point_test test/ImagePointTest.cpp)
 target_link_libraries(image_point_test

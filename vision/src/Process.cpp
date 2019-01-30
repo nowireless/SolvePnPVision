@@ -38,12 +38,17 @@ namespace vision {
      * @return
      */
     std::vector<TargetPair> Process::ProcessFrame(Mat source, Mat &dest, Mat &processed) {
+        auto featureBegin = ros::Time::now();
         vector<Contour> polyContours = featureExtraction(source, dest, processed);
         ROS_DEBUG("Found blobs %lu", polyContours.size());
+        auto featureEnd = ros::Time::now();
 
+        auto idBegin = ros::Time::now();
         vector<TargetInfo> foundTargets = targetIdentification(polyContours, dest, processed);
         ROS_DEBUG("Found targets %lu", foundTargets.size());
+        auto idEnd = ros::Time::now();
 
+        auto debugBegin = ros::Time::now();
         for(auto target : foundTargets) {
             Point2f vertices[4];
             target.boundingBox.points(vertices);
@@ -58,15 +63,31 @@ namespace vision {
             ss << target.compositeScore;
             cv::putText(processed, ss.str(), target.boundingBox.center, 1.0, FONT_HERSHEY_PLAIN, cv::Scalar(255,255,255));
         }
+        auto debugEnd = ros::Time::now();
 
+        auto pairBegin = ros::Time::now();
         vector<TargetPair> targetPairs = findTargetPairs(foundTargets, dest);
         ROS_DEBUG("Found targets pairs %lu", targetPairs.size());
+        auto pairEnd = ros::Time::now();
 
         for (auto pair : targetPairs) {
             line(processed, pair.left.boundingBox.center, pair.right.boundingBox.center, Scalar(0, 255, 255), 2);
         }
 
-        return dataExtraction(polyContours, targetPairs, dest);
+        auto dataBegin = ros::Time::now();
+        auto data = dataExtraction(polyContours, targetPairs, dest);
+        auto dataEnd = ros::Time::now();
+
+
+        ROS_INFO_STREAM("Feature (ms): " << (featureEnd - featureBegin).toSec() * 1000.0);
+        ROS_INFO_STREAM("Id      (ms): " << (idEnd - idBegin).toSec() * 1000.0);
+        ROS_INFO_STREAM("Debug   (ms): " << (debugEnd - debugBegin).toSec() * 1000.0);
+        ROS_INFO_STREAM("Extract (ms): " << (dataEnd - dataBegin).toSec() * 1000.0);
+
+
+
+
+        return data;
     }
 
     /**
@@ -87,18 +108,30 @@ namespace vision {
          * Find Contours of blobs
          */
 
+        auto begin = ros::Time::now();
         Mat frame;
         source.copyTo(frame);
         source.copyTo(dest);
         source.copyTo(processed);
+        auto end = ros::Time::now();
+        ROS_INFO_STREAM("  Copy (ms): " << (end - begin).toSec() * 1000.0);
+
 
         //Convert to HSV color space
+        begin = ros::Time::now();
         ROS_DEBUG("Converting to HSV");
         cvtColor(frame, frame, CV_BGR2HSV);
+        end = ros::Time::now();
+        ROS_INFO_STREAM("  HSV  (ms): " << (end - begin).toSec() * 1000.0);
+
 
         //Threshold, find pixels in range
+        begin = ros::Time::now();
         ROS_DEBUG_STREAM("Thresholding image to: " << m_config->hsvLow << m_config->hsvHigh);
         inRange(frame, m_config->hsvLow, m_config->hsvHigh, frame);
+        end = ros::Time::now();
+        ROS_INFO_STREAM("  range (ms): " << (end - begin).toSec() * 1000.0);
+
 
         /*
          * Morphology
@@ -108,22 +141,30 @@ namespace vision {
          * https://stackoverflow.com/questions/30369031/
          * remove-spurious-small-islands-of-noise-in-an-image-python-opencv
          */
-        Mat closeSE = getStructuringElement(MORPH_RECT, Size(5,5));
-        morphologyEx(frame, frame, MORPH_CLOSE, closeSE);
-        Mat openSE = getStructuringElement(MORPH_RECT, Size(2,2));
-        morphologyEx(frame, frame, MORPH_OPEN, openSE);
+        //Mat closeSE = getStructuringElement(MORPH_RECT, Size(5,5));
+        // morphologyEx(frame, frame, MORPH_CLOSE, closeSE);
+        //Mat openSE = getStructuringElement(MORPH_RECT, Size(2,2));
+        //morphologyEx(frame, frame, MORPH_OPEN, openSE);
 
+        begin = ros::Time::now();
         frame.copyTo(dest);
         cvtColor(dest,dest, CV_GRAY2BGR);
+        end = ros::Time::now();
+        ROS_INFO_STREAM("  Gray  (ms): " << (end - begin).toSec() * 1000.0);
+
 
         //Find contours
+        begin = ros::Time::now();
         vector<Contour> contours;
         vector<Vec4i> hierarchy;
         findContours(frame, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
-        ROS_INFO_STREAM("Contours: " << contours.size());
+        ROS_DEBUG_STREAM("Contours: " << contours.size());
+        end = ros::Time::now();
+        ROS_INFO_STREAM("  Contour(ms): " << (end - begin).toSec() * 1000.0);
 
         // Commented out due to how episilon interactes with low resolution (small) targets
         //Find Polygon contours
+        begin = ros::Time::now();
         vector<Contour> resultContours;
         for(int i = 0; i < contours.size(); i++) {
             Contour contour = contours[i];
@@ -137,14 +178,14 @@ namespace vision {
             //as there may be issues with a partial target being detected.
             //This could cause bad pose estimation.
             if(nearBorder(contour, source.size(), 10)) {
-                ROS_INFO("Skipping contour as it is near border");
+                ROS_DEBUG("Skipping contour as it is near border");
                 continue;
             }
 
             const double minArea = 200;
             double area = contourArea(contour);
             if (area < minArea) {
-                ROS_INFO("Skipping contour as it is too small");
+                ROS_DEBUG("Skipping contour as it is too small");
                 continue;
             }
 //
@@ -158,6 +199,8 @@ namespace vision {
 ////            }
             resultContours.push_back(contour);
         }
+        end = ros::Time::now();
+        ROS_INFO_STREAM("  Loop (ms): " << (end - begin).toSec() * 1000.0);
 
 
         //Sort Contours from largest to smallest
@@ -201,7 +244,7 @@ namespace vision {
                 info.polyIndex = i;
                 info.boundingBox = boundingBox;
 
-                ROS_INFO_STREAM("Angle" <<  angle);
+                ROS_DEBUG_STREAM("Angle" <<  angle);
                 if (angle > 0) {
                     // Tilted counter clock wise, right target
                     info.targetID = TargetID::kRightTilt;
@@ -218,22 +261,22 @@ namespace vision {
     }
 
     vector<TargetPair> Process::findTargetPairs(std::vector<TargetInfo> foundTargets, cv::Mat &dest) {
-        ROS_INFO("Find target pairs start");
+        ROS_DEBUG("Find target pairs start");
         vector<TargetPair> results;
 
         for(auto target : foundTargets) {
             switch (target.targetID) {
             case TargetID::kNotATarget:
-                ROS_INFO("Not a target target");
+                ROS_DEBUG("Not a target target");
                 break;
             case TargetID::kLeftTilt:
-                ROS_INFO("Left tilt target");
+                ROS_DEBUG("Left tilt target");
                 break;
             case TargetID::kRightTilt:
-                ROS_INFO("Right tilt target");
+                ROS_DEBUG("Right tilt target");
                 break;
             default:
-                ROS_INFO("Unknown target");
+                ROS_DEBUG("Unknown target");
                 break;
 
             }
@@ -242,16 +285,16 @@ namespace vision {
         // Remove unintresting targets
         foundTargets.erase(remove_if(foundTargets.begin(), foundTargets.end(), [](TargetInfo info) {
             bool remove =  !(info.targetID == TargetID::kLeftTilt || info.targetID == TargetID::kRightTilt);
-            ROS_INFO_STREAM("Remove: " << remove);
+            ROS_DEBUG_STREAM("Remove: " << remove);
             return remove;
         }), foundTargets.end());
 
 
-        ROS_INFO_STREAM("Target count " << foundTargets.size());
+        ROS_DEBUG_STREAM("Target count " << foundTargets.size());
 
         // If there are less than 2 foudn targets there is no point in proceeding
         if (foundTargets.size() < 2) {
-            ROS_INFO("Less than 2 targets found");
+            ROS_DEBUG("Less than 2 targets found");
             return results;
         }
 
@@ -261,7 +304,7 @@ namespace vision {
         );
 
         for (auto target : foundTargets) {
-            ROS_INFO_STREAM(target.targetID << ", " <<target.boundingBox.center.x);
+            ROS_DEBUG_STREAM(target.targetID << ", " <<target.boundingBox.center.x);
         }
 
         // Try to find a matching pair
@@ -273,22 +316,22 @@ namespace vision {
         // It is assumed that only left and right ta
         auto it = foundTargets.begin();
         while(it != foundTargets.end()) {
-            ROS_INFO("Finding pair");
+            ROS_DEBUG("Finding pair");
             TargetInfo leftSide = *it;
-            ROS_INFO_STREAM("Left: " << leftSide.targetID << ", contour index: " << leftSide.polyIndex);
+            ROS_DEBUG_STREAM("Left: " << leftSide.targetID << ", contour index: " << leftSide.polyIndex);
 
             it++; // Advance to next target
             if (leftSide.targetID != TargetID::kRightTilt) {
-                ROS_INFO_STREAM("Left side target is not tilted right");
+                ROS_DEBUG_STREAM("Left side target is not tilted right");
                 continue; // Try again
             }
 
 
             TargetInfo rightSide = *it;
-            ROS_INFO_STREAM("Right: " << rightSide.targetID << ", contour index: " << rightSide.polyIndex);
+            ROS_DEBUG_STREAM("Right: " << rightSide.targetID << ", contour index: " << rightSide.polyIndex);
             if (rightSide.targetID != TargetID::kLeftTilt) {
                 // This is not a right side target, lets try this process again with the left one being this target
-                ROS_INFO_STREAM("Left side target is not tilted left");
+                ROS_DEBUG_STREAM("Left side target is not tilted left");
                 continue;
             }
 
@@ -307,13 +350,13 @@ namespace vision {
             double leftScore = ratioToScore(goalRatio / leftRatio);
             double rightScore = ratioToScore(goalRatio / rightRatio);
 
-            ROS_INFO_STREAM("Left ratio: " << leftRatio << ", score: " << leftScore);
-            ROS_INFO_STREAM("Right ratio: " << rightRatio << ", score: " << rightScore);
+            ROS_DEBUG_STREAM("Left ratio: " << leftRatio << ", score: " << leftScore);
+            ROS_DEBUG_STREAM("Right ratio: " << rightRatio << ", score: " << rightScore);
 
 
             const double minScore = 1; // TOOD find
             if (leftScore > minScore && rightScore > minScore) {
-                ROS_INFO_STREAM("Found a target pair!");
+                ROS_DEBUG_STREAM("Found a target pair!");
                 // We found a target pair!
                 TargetPair pair;
                 pair.left = leftSide;
@@ -322,7 +365,7 @@ namespace vision {
             }
         }
 
-        ROS_INFO("Find target pairs end");
+        ROS_DEBUG("Find target pairs end");
 
         return results;
     }

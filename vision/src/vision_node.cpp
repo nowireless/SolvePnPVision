@@ -29,7 +29,7 @@ cv::Mat CAMERA_MAT = cv::Mat();
 Config CONFIG;
 
 void imageCallback(const sensor_msgs::Image::ConstPtr &msg) {
-    ROS_INFO("New source frame");
+    ROS_DEBUG("New source frame");
     try {
         cv_bridge::CvImageConstPtr cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
         cv_ptr->image.copyTo(SOURCE_FRAME);
@@ -72,9 +72,9 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "vision");
     ros::NodeHandle n("~");
 
-    if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug)) {
-        ros::console::notifyLoggerLevelsChanged();
-    }
+//    if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug)) {
+ //       ros::console::notifyLoggerLevelsChanged();
+  //  }
 
     // Dynamic reconfigure setup
     dynamic_reconfigure::Server<vision::VisionNodeConfig> server;
@@ -84,11 +84,11 @@ int main(int argc, char **argv) {
 
 
     // Pub/Sub Setup
-    ros::Subscriber sourceFrameSub = n.subscribe("/camera/color/image_raw", 5, imageCallback);
+    ros::Subscriber sourceFrameSub = n.subscribe("/camera/color/image_raw", 1, imageCallback);
     ros::Subscriber cameraInfoSub = n.subscribe("/camera/color/camera_info", 5, cameraInfoCallback);
 
-    ros::Publisher processedFramePub = n.advertise<sensor_msgs::Image>("processed_image", 10);
-    ros::Publisher destFramePub = n.advertise<sensor_msgs::Image>("dest_image", 10);
+    ros::Publisher processedFramePub = n.advertise<sensor_msgs::Image>("processed_image", 1);
+    ros::Publisher destFramePub = n.advertise<sensor_msgs::Image>("dest_image", 1);
     ros::Publisher distancePub = n.advertise<std_msgs::Float32>("distance", 10);
 
     //Odometry Setup
@@ -113,6 +113,7 @@ int main(int argc, char **argv) {
     while(ros::ok()) {
         //Get new frame from camera
         if(NEW_FRAME && NEW_CAMERA_INFO) {
+            ros::Time begin = ros::Time::now();
             CAMERA_MAT.copyTo(CONFIG.cameraMatrix);
             DIST.copyTo(CONFIG.distCoeffs);
 
@@ -186,6 +187,10 @@ int main(int argc, char **argv) {
 //            }
 
             NEW_FRAME = false;
+
+            ros::Time end = ros::Time::now();
+
+            ROS_INFO_STREAM("Time (ms): " << (end - begin).toSec() * 1000.0);
 
 //            ros::requestShutdown();
         } else {
