@@ -636,6 +636,7 @@ namespace vision {
 //        double ratioRight;
 //        double ratio =  (ratioLeft + ratioRight) / 2.0;
 //        return ratioToScore()
+        return 0;
     }
 
     double Process::pointToPointDistance(cv::Point a, cv::Point b) {

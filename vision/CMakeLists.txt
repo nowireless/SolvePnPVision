@@ -27,11 +27,17 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
 )
 
+find_package(wpilib REQUIRED)
+find_package(realsense2 2.17.1 REQUIRED)
 find_package(OpenCV 3 REQUIRED)
 find_package(YamlCpp REQUIRED)
 #find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(PkgConfig)
 pkg_search_module(Eigen3 REQUIRED eigen3)
+
+if(NOT realsense2_FOUND)
+    message(FATAL_ERROR "\n\n Intel RealSense SDK 2.0 is missing, please install it from https://github.com/IntelRealSense/librealsense/releases\n\n")
+endif()
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -142,6 +148,7 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
   ${YAMLCPP_INCLUDE_DIR}
   ${Eigen3_INCLUDE_DIRS}
+  ${realsense_INCLUDE_DIR}
 )
 
 ## Declare a C++ library
@@ -167,6 +174,15 @@ target_link_libraries(vision_node
    ${Eigen3_LIBS}
 )
 
+add_executable(vision_aio src/vision_aio.cpp src/Process.cpp src/Target.cpp)
+target_link_libraries(vision_aio
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
+   ${Eigen3_LIBS}
+   ${realsense2_LIBRARY}
+   cameraserver ntcore cscore wpiutil
+)
+
 #add_executable(camera_calibration src/camera_calibration.cpp)
 #target_link_libraries(camera_calibration
 #    ${catkin_LIBRARIES}
@@ -176,6 +192,12 @@ target_link_libraries(vision_node
 
 add_executable(image_point_test test/ImagePointTest.cpp)
 target_link_libraries(image_point_test
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+)
+
+add_executable(copy_test test/CopyTest.cpp)
+target_link_libraries(copy_test
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
 )
